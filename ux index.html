@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmBot AI - Your Agricultural Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: 
+                radial-gradient(ellipse at top, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #0a0a0a 50%, #2a2a2a 75%, #000000 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: gradientShift 20s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* New Robot Watermark */
+        .robot-watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            height: 180px;
+            opacity: 0.15;
+            z-index: -1;
+            animation: robotFloat 8s ease-in-out infinite;
+        }
+
+        .robot-body {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            height: 120px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            border-radius: 40px 40px 20px 20px;
+            box-shadow: 
+                0 8px 32px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .robot-head {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .robot-eye {
+            position: absolute;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border-radius: 50%;
+            animation: robotBlink 4s infinite;
+        }
+
+        .robot-eye.left {
+            left: 15px;
+        }
+
+        .robot-eye.right {
+            right: 15px;
+        }
+
+        .robot-antenna {
+            position: absolute;
+            top: -15px;
+            width: 4px;
+            height: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+        }
+
+        .robot-antenna.left {
+            left: 20px;
+            transform: rotate(-20deg);
+        }
+
+        .robot-antenna.right {
+            right: 20px;
+            transform: rotate(20deg);
+        }
+
+        .robot-antenna-ball {
+            position: absolute;
+            top: -5px;
+            width: 8px;
+            height: 8px;
+            background: #ff5555;
+            border-radius: 50%;
+            left: -2px;
+            animation: antennaGlow 2s infinite alternate;
+        }
+
+        .robot-arm {
+            position: absolute;
+            width: 10px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            top: 70px;
+            animation: robotArmMove 6s infinite;
+        }
+
+        .robot-arm.left {
+            left: -5px;
+            border-radius: 5px 0 0 5px;
+            transform-origin: top center;
+        }
+
+        .robot-arm.right {
+            right: -5px;
+            border-radius: 0 5px 5px 0;
+            transform-origin: top center;
+            animation-delay: -3s;
+        }
+
+        .robot-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            width: 50px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .robot-panel-lights {
+            display: flex;
+            gap: 5px;
+        }
+
+        .robot-light {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: robotLightPulse 2s infinite;
+        }
+
+        .robot-light:nth-child(1) { background: #ff5555; animation-delay: 0s; }
+        .robot-light:nth-child(2) { background: #55ff55; animation-delay: 0.5s; }
+        .robot-light:nth-child(3) { background: #5555ff; animation-delay: 1s; }
+
+        @keyframes robotFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes robotBlink {
+            0%, 45%, 55%, 100% { height: 12px; }
+            50% { height: 2px; }
+        }
+
+        @keyframes robotArmMove {
+            0%, 100% { transform: rotate(-15deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        @keyframes antennaGlow {
+            0% { opacity: 0.3; box-shadow: 0 0 5px #ff5555; }
+            100% { opacity: 1; box-shadow: 0 0 20px #ff5555; }
+        }
+
+        @keyframes robotLightPulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Enhanced animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(-10px) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) translateX(-5px) scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(10vh) translateX(5px) scale(1);
+            }
+            100% {
+                transform: translateY(-10px) translateX(10px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Header with enhanced animations */
+        .header {
+            padding: 30px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(20, 20, 20, 0.4) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: headerShimmer 3s infinite;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: headerShimmer 3s infinite 1.5s;
+        }
+
+        @keyframes headerShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            animation: logoEntrance 2s ease-out;
+        }
+
+        @keyframes logoEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-20px) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000000;
+            box-shadow: 
+                0 8px 32px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            animation: logoGlow 4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: iconShine 3s infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { 
+                box-shadow: 0 8px 32px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+                transform: rotate(0deg);
+            }
+            50% { 
+                box-shadow: 0 12px 48px rgba(255, 255, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes iconShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #999999 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            animation: textGlow 3s ease-in-out infinite, textFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3)); }
+            50% { filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6)); }
+        }
+
+        @keyframes textFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .tagline {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            font-weight: 300;
+            animation: fadeInUp 1s ease-out, taglinePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes taglinePulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Enhanced Chat Interface */
+        .chat-section {
+            padding: 50px 20px;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(30, 30, 30, 0.4) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            animation: containerFloat 6s ease-in-out infinite, containerBreath 8s ease-in-out infinite;
+        }
+
+        @keyframes containerFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes containerBreath {
+            0%, 100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+            50% { box-shadow: 0 25px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+        }
+
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            animation: borderGlow 4s ease-in-out infinite;
+        }
+
+        .chat-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: borderGlow 4s ease-in-out infinite 2s;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ffffff, #cccccc);
+            border-radius: 3px;
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 85%;
+            animation: messageSlideIn 0.5s ease-out, messagePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95) rotateX(10deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+            }
+        }
+
+        @keyframes messagePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            flex-shrink: 0;
+            position: relative;
+            animation: avatarPulse 3s ease-in-out infinite, avatarRotate 10s linear infinite;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes avatarRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .bot-avatar {
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            color: #000000;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, #666666 0%, #333333 50%, #000000 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .message-content {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(30, 30, 30, 0.6) 100%);
+            padding: 18px 24px;
+            border-radius: 20px;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            animation: contentGlow 5s ease-in-out infinite;
+        }
+
+        @keyframes contentGlow {
+            0%, 100% { border-color: rgba(255, 255, 255, 0.2); }
+            50% { border-color: rgba(255, 255, 255, 0.4); }
+        }
+
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: messageShimmer 4s infinite;
+        }
+
+        @keyframes messageShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, rgba(60, 60, 60, 0.8) 0%, rgba(40, 40, 40, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 80px 30px;
+            animation: welcomeFadeIn 2s ease-out, welcomeFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes welcomeFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(20px) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes welcomeFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #000000;
+            animation: iconFloat 4s ease-in-out infinite, iconSpin 15s linear infinite;
+            box-shadow: 
+                0 10px 40px rgba(255, 255, 255, 0.3),
+                inset 0 4px 8px rgba(255, 255, 255, 0.4),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: iconSparkle 3s linear infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes iconSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes iconSparkle {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Enhanced Input Section */
+        .input-section {
+            padding: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(20, 20, 20, 0.3) 100%);
+            backdrop-filter: blur(15px);
+            position: relative;
+        }
+
+        .input-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: inputShimmer 5s ease-in-out infinite;
+        }
+
+        @keyframes inputShimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .input-container {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            position: relative;
+        }
+
+        .input-field {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(30, 30, 30, 0.6) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 18px 24px;
+            color: #ffffff;
+            font-size: 16px;
+            resize: none;
+            min-height: 56px;
+            max-height: 140px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            animation: inputBreath 6s ease-in-out infinite;
+        }
+
+        @keyframes inputBreath {
+            0%, 100% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 255, 255, 0.2); }
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ffffff;
+            box-shadow: 
+                0 0 0 4px rgba(255, 255, 255, 0.2),
+                0 10px 40px rgba(255, 255, 255, 0.2),
+                inset 0 2px 4px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 20, 0.7) 100%);
+            animation: inputFocusGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes inputFocusGlow {
+            0%, 100% { border-color: #ffffff; }
+            50% { border-color: #cccccc; }
+        }
+
+        .voice-btn, .send-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            animation: buttonFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes buttonFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .voice-btn::before, .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .voice-btn:hover::before, .send-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #888888 0%, #555555 50%, #333333 100%);
+            color: white;
+            box-shadow: 
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            animation: buttonFloat 4s ease-in-out infinite, voicePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes voicePulse {
+            0%, 100% { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2); }
+            50% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.3); }
+        }
+
+        .voice-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            animation: voiceHover 0.5s ease;
+        }
+
+        @keyframes voiceHover {
+            0%, 100% { transform: translateY(-5px) scale(1.1); }
+            50% { transform: translateY(-8px) scale(1.15); }
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #333333 0%, #000000 50%, #111111 100%);
+            animation: recordingPulse 1s infinite;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(255, 255, 255, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+            50% { 
+                transform: scale(1.2);
+                box-shadow: 0 0 60px rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            color: #000000;
+            box-shadow: 
+                0 6px 24px rgba(255, 255, 255, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            animation: buttonFloat 4s ease-in-out infinite 1s, sendGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes sendGlow {
+            0%, 100% { box-shadow: 0 6px 24px rgba(255, 255, 255, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4); }
+            50% { box-shadow: 0 10px 40px rgba(255, 255, 255, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6); }
+        }
+
+        .send-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 50px rgba(255, 255, 255, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+            animation: sendHover 0.5s ease;
+        }
+
+        @keyframes sendHover {
+            0%, 100% { transform: translateY(-5px) scale(1.1); }
+            50% { transform: translateY(-8px) scale(1.15); }
+        }
+
+        .send-btn:active {
+            transform: translateY(0) scale(0.95);
+            animation: sendClick 0.2s ease;
+        }
+
+        @keyframes sendClick {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(0.95); }
+        }
+
+        /* Enhanced Info Sections */
+        .info-section {
+            padding: 80px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: sectionFloat 10s ease-in-out infinite;
+        }
+
+        @keyframes sectionFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            animation: sectionShimmer 6s ease-in-out infinite;
+        }
+
+        @keyframes sectionShimmer {
+            0%, 100% { opacity: 0.3; width: 100px; }
+            50% { opacity: 1; width: 200px; }
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(30, 30, 30, 0.4) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            margin-bottom: 40px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: cardFloat 8s ease-in-out infinite, cardBreath 12s ease-in-out infinite;
+        }
+
+        .info-card:nth-child(even) {
+            animation-delay: -4s;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-12px) rotateX(2deg); }
+        }
+
+        @keyframes cardBreath {
+            0%, 100% { 
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+            50% { 
+                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+                border-color: rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: cardShimmer 8s infinite;
+        }
+
+        .info-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            animation: cardGlow 10s ease-in-out infinite;
+        }
+
+        @keyframes cardShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .info-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            animation: titleGlow 4s ease-in-out infinite, titleFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)); }
+            50% { filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.6)); }
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .info-subtitle {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 32px 0 16px 0;
+            color: #ffffff;
+            position: relative;
+            display: inline-block;
+            animation: subtitleGlow 5s ease-in-out infinite;
+        }
+
+        @keyframes subtitleGlow {
+            0%, 100% { color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+            50% { color: #cccccc; text-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
+        }
+
+        .info-subtitle::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #ffffff, transparent);
+            animation: underlineGlow 4s ease-in-out infinite, underlineExpand 6s ease-in-out infinite;
+        }
+
+        @keyframes underlineGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes underlineExpand {
+            0%, 100% { width: 100%; }
+            50% { width: 120%; }
+        }
+
+        .info-text {
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 20px;
+            font-size: 16px;
+            animation: textPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes textPulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .feature-item {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(40, 40, 40, 0.6) 100%);
+            padding: 32px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            animation: featureFloat 6s ease-in-out infinite;
+        }
+
+        .feature-item:nth-child(odd) {
+            animation-delay: -2s;
+        }
+
+        .feature-item:nth-child(even) {
+            animation-delay: -4s;
+        }
+
+        @keyframes featureFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+
+        .feature-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-item::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: featureSparkle 8s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes featureSparkle {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .feature-item:hover {
+            transform: translateY(-12px) scale(1.05);
+            border-color: #ffffff;
+            box-shadow: 
+                0 25px 80px rgba(255, 255, 255, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            animation: featureHover 1s ease-in-out infinite;
+        }
+
+        @keyframes featureHover {
+            0%, 100% { transform: translateY(-12px) scale(1.05); }
+            50% { transform: translateY(-15px) scale(1.08); }
+        }
+
+        .feature-item:hover::before {
+            opacity: 1;
+        }
+
+        .feature-item:hover::after {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 50%, #888888 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 20px;
+            box-shadow: 
+                0 8px 32px rgba(255, 255, 255, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            animation: iconRotate 12s linear infinite, iconPulse 4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: iconShine 3s infinite;
+        }
+
+        @keyframes iconRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { 
+                box-shadow: 0 8px 32px rgba(255, 255, 255, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 12px 48px rgba(255, 255, 255, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes iconShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+            animation: featureTitleGlow 6s ease-in-out infinite;
+        }
+
+        @keyframes featureTitleGlow {
+            0%, 100% { 
+                color: #ffffff; 
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            }
+            50% { 
+                color: #cccccc; 
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            }
+        }
+
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.7;
+            font-size: 15px;
+            animation: featureDescPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes featureDescPulse {
+            0%, 100% { opacity: 0.75; }
+            50% { opacity: 0.9; }
+        }
+
+        /* Enhanced Responsive */
+        @media (max-width: 768px) {
+            .chat-section {
+                padding: 30px 15px;
+            }
+            
+            .input-container {
+                gap: 12px;
+            }
+            
+            .voice-btn, .send-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-card {
+                padding: 30px;
+            }
+
+            .logo-text {
+                font-size: 28px;
+            }
+
+            .info-title {
+                font-size: 28px;
+            }
+
+            .welcome-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+
+            .robot-watermark {
+                width: 80px;
+                height: 120px;
+                opacity: 0.1;
+            }
+            
+            .robot-body {
+                width: 50px;
+                height: 80px;
+                left: 15px;
+            }
+            
+            .robot-head {
+                width: 40px;
+                height: 40px;
+                left: 5px;
+            }
+            
+            .robot-eye {
+                top: 12px;
+                width: 8px;
+                height: 8px;
+            }
+            
+            .robot-eye.left {
+                left: 10px;
+            }
+            
+            .robot-eye.right {
+                right: 10px;
+            }
+        }
+
+        /* Additional enhanced animations */
+        @keyframes screenGlow {
+            0%, 100% { 
+                box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1);
+            }
+            50% { 
+                box-shadow: inset 0 0 100px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        body {
+            animation: screenGlow 15s ease-in-out infinite;
+        }
+
+        /* Scroll animations */
+        @keyframes scrollFade {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-card:nth-child(1) { animation-delay: 0.2s; }
+        .info-card:nth-child(2) { animation-delay: 0.4s; }
+        .info-card:nth-child(3) { animation-delay: 0.6s; }
+        .info-card:nth-child(4) { animation-delay: 0.8s; }
+    </style>
+</head>
+<body>
+    <div class="bg-particles"></div>
+    
+    <!-- New Robot Watermark -->
+    <div class="robot-watermark">
+        <div class="robot-antenna left"><div class="robot-antenna-ball"></div></div>
+        <div class="robot-antenna right"><div class="robot-antenna-ball"></div></div>
+        <div class="robot-head">
+            <div class="robot-eye left"></div>
+            <div class="robot-eye right"></div>
+        </div>
+        <div class="robot-body">
+            <div class="robot-arm left"></div>
+            <div class="robot-arm right"></div>
+            <div class="robot-panel">
+                <div class="robot-panel-lights">
+                    <div class="robot-light"></div>
+                    <div class="robot-light"></div>
+                    <div class="robot-light"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">AI</div>
+                <div class="logo-text">FarmBot AI</div>
+            </div>
+            <div class="tagline">Your Intelligent Agricultural Assistant</div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">F</div>
+                        <h3>Welcome to FarmBot AI!</h3>
+                        <p>Ask me anything about farming, crops, livestock, weather, or agricultural best practices.</p>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="input-container">
+                        <textarea 
+                            class="input-field" 
+                            id="messageInput" 
+                            placeholder="Ask about crop diseases, soil health, weather forecasts, farming techniques..."
+                            rows="1"
+                        ></textarea>
+                        <button class="voice-btn" id="voiceBtn" title="Voice Input">🎤</button>
+                        <button class="send-btn" id="sendBtn" title="Send Message">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Sections -->
+        <div class="info-section">
+            <div class="info-card">
+                <div class="info-title">About FarmBot AI</div>
+                <div class="info-text">
+                    FarmBot AI is your comprehensive agricultural assistant designed to help farmers make informed decisions, 
+                    optimize crop yields, and solve farming challenges. Our AI combines the latest agricultural research 
+                    with real-time data to provide personalized recommendations for your farm.
+                </div>
+                <div class="info-text">
+                    Whether you're a seasoned farmer or just starting out, FarmBot AI offers expert guidance on everything 
+                    from soil management to pest control, weather planning to harvest optimization.
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">Key Features</div>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🌱</div>
+                        <div class="feature-title">Crop Management</div>
+                        <div class="feature-desc">Get advice on planting schedules, crop rotation, fertilization, and harvest timing for optimal yields.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌤️</div>
+                        <div class="feature-title">Weather Insights</div>
+                        <div class="feature-desc">Receive weather forecasts and climate-based recommendations for your farming operations.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🐛</div>
+                        <div class="feature-title">Pest & Disease Control</div>
+                        <div class="feature-desc">Identify and manage crop diseases and pests with targeted treatment recommendations.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌍</div>
+                        <div class="feature-title">Soil Health</div>
+                        <div class="feature-desc">Analyze soil conditions and get recommendations for improving soil fertility and structure.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🐄</div>
+                        <div class="feature-title">Livestock Care</div>
+                        <div class="feature-desc">Guidance on animal health, nutrition, breeding, and sustainable livestock management practices.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📈</div>
+                        <div class="feature-title">Market Insights</div>
+                        <div class="feature-desc">Stay updated with crop prices, market trends, and strategies for maximizing farm profitability.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">How to Use FarmBot AI</div>
+                
+                <div class="info-subtitle">Text Chat</div>
+                <div class="info-text">
+                    Type your farming questions in the chat box above. Be specific about your crops, location, 
+                    and farming conditions for the most accurate advice.
+                </div>
+
+                <div class="info-subtitle">Voice Input</div>
+                <div class="info-text">
+                    Click the microphone button to ask questions using your voice. Perfect for when you're 
+                    out in the field and need hands-free assistance.
+                </div>
+
+                <div class="info-subtitle">Smart Recommendations</div>
+                <div class="info-text">
+                    Our AI analyzes your questions and provides tailored recommendations based on current 
+                    agricultural best practices, local conditions, and scientific research.
+                </div>
+
+                <div class="info-subtitle">Follow-up Questions</div>
+                <div class="info-text">
+                    Feel free to ask follow-up questions or request clarification on any advice. 
+                    FarmBot AI remembers the context of your conversation for better assistance.
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">Sample Questions</div>
+                <div class="info-text">Here are some examples of what you can ask FarmBot AI:</div>
+                
+                <div class="info-subtitle">Crop-Related Questions</div>
+                <div class="info-text">
+                    "What's the best time to plant tomatoes in my region?"<br>
+                    "My corn leaves are turning yellow, what could be wrong?"<br>
+                    "How much water do my soybeans need during flowering?"
+                </div>
+
+                <div class="info-subtitle">Soil & Fertilization</div>
+                <div class="info-text">
+                    "What fertilizer should I use for nitrogen-deficient soil?"<br>
+                    "How can I improve clay soil drainage?"<br>
+                    "When should I test my soil pH?"
+                </div>
+
+                <div class="info-subtitle">Pest Management</div>
+                <div class="info-text">
+                    "How do I identify and treat aphids on my crops?"<br>
+                    "What's an organic solution for controlling weeds?"<br>
+                    "My plants have white spots on leaves, what is it?"
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced particle creation with more dynamic effects
+        function createParticles() {
+            const particlesContainer = document.querySelector('.bg-particles');
+            const particleCount = 25;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                
+                // Add size variation
+                const size = Math.random() * 3 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                // Add opacity variation
+                particle.style.opacity = Math.random() * 0.6 + 0.3;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        let isRecording = false;
+        
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const chatMessages = document.getElementById('chatMessages');
+
+        // Initialize enhanced particles
+        createParticles();
+
+        // Auto-resize textarea with enhanced animations
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+            
+            // Add typing animation
+            this.style.animation = 'inputPulse 0.3s ease';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 300);
+        });
+
+        // Enhanced send message function
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Add send animation
+                sendBtn.style.animation = 'sendClick 0.3s ease';
+                setTimeout(() => {
+                    sendBtn.style.animation = '';
+                }, 300);
+                
+                // Simulate bot response with typing indicator
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addBotResponse(message);
+                }, 1500);
+            }
+        }
+
+        // Enhanced message adding with staggered animations
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `message-avatar ${sender}-avatar`;
+            avatarDiv.textContent = sender === 'user' ? '👤' : '🤖';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            // Remove welcome message if it exists
+            const welcomeMsg = chatMessages.querySelector('.welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.style.animation = 'fadeOut 0.5s ease-out forwards';
+                setTimeout(() => welcomeMsg.remove(), 500);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Smooth scroll with animation
+            setTimeout(() => {
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+
+        // Typing indicator functions
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar bot-avatar">🤖</div>
+                <div class="message-content">
+                    <span class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </span>
+                </div>
+            `;
+            
+            // Add typing animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .typing-dots span {
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.7);
+                    margin: 0 2px;
+                    animation: typingBounce 1.4s infinite ease-in-out;
+                }
+                .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+                .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+                @keyframes typingBounce {
+                    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+                    40% { transform: scale(1); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = chatMessages.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Enhanced bot response generation
+        function addBotResponse(userMessage) {
+            const responses = {
+                'pest': "For pest management, I recommend integrated pest management (IPM) practices. First, identify the specific pest affecting your crops. Common solutions include beneficial insects, organic pesticides like neem oil, and crop rotation to break pest cycles. 🐛",
+                'soil': "Soil health is crucial for successful farming! I suggest getting a soil test to check pH, nutrients, and organic matter. Generally, adding compost improves soil structure and fertility. What specific soil issue are you facing? 🌱",
+                'weather': "Weather planning is essential for farming success! I can help you understand how weather patterns affect your crops. Are you looking for planting schedules, irrigation planning, or protection strategies for extreme weather? 🌤️",
+                'crop': "Crop management involves many factors including variety selection, planting timing, fertilization, and harvest planning. Which crop are you growing and what specific aspect would you like help with? 🌾",
+                'livestock': "Livestock management requires attention to nutrition, health, housing, and breeding. I can help with feed recommendations, disease prevention, and animal welfare practices. What type of livestock are you raising? 🐄",
+                'default': "Thank you for your question! As your FarmBot AI assistant, I'm here to help with all aspects of farming. Could you provide more details about your specific situation so I can give you the most relevant advice? 🤖"
+            };
+            
+            let response = responses.default;
+            const lowerMessage = userMessage.toLowerCase();
+            
+            for (const [key, value] of Object.entries(responses)) {
+                if (key !== 'default' && lowerMessage.includes(key)) {
+                    response = value;
+                    break;
+                }
+            }
+            
+            // Add some variety to responses
+            if (Math.random() > 0.7) {
+                response += "\n\nWould you like me to elaborate on any specific aspect?";
+            }
+            
+            addMessage(response, 'bot');
+        }
+
+        // Enhanced event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Enhanced voice input simulation with better animations
+        voiceBtn.addEventListener('click', function() {
+            if (!isRecording) {
+                isRecording = true;
+                this.classList.add('recording');
+                this.textContent = '🔴';
+                
+                // Add recording pulse effect
+                const pulseInterval = setInterval(() => {
+                    if (!isRecording) {
+                        clearInterval(pulseInterval);
+                        return;
+                    }
+                    this.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        if (this.classList.contains('recording')) {
+                            this.style.transform = 'scale(1)';
+                        }
+                    }, 150);
+                }, 300);
+                
+                // Simulate voice recording
+                setTimeout(() => {
+                    isRecording = false;
+                    this.classList.remove('recording');
+                    this.textContent = '🎤';
+                    this.style.transform = 'scale(1)';
+                    
+                    // Add sample voice input with typing effect
+                    const voiceMessage = "How do I treat yellow leaves on my tomato plants?";
+                    typeMessage(voiceMessage, messageInput);
+                }, 2500);
+            } else {
+                isRecording = false;
+                this.classList.remove('recording');
+                this.textContent = '🎤';
+                this.style.transform = 'scale(1)';
+            }
+        });
+
+        // Typing effect for voice input
+        function typeMessage(message, element) {
+            element.focus();
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                element.value = message.substring(0, i + 1);
+                element.dispatchEvent(new Event('input'));
+                i++;
+                if (i >= message.length) {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        }
+
+        // Add scroll animations for info cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'scrollFade 1s ease-out forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.info-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
